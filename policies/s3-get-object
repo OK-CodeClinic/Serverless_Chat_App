@@ -1,0 +1,15 @@
+{
+  "Id": "Policy1696413307562",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Stmt1696413306082",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::ken-serverless-chat-application/*",
+      "Principal": "*"
+    }
+  ]
+}
