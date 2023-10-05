@@ -1,6 +1,7 @@
 import json
 import boto3
 from botocore.exceptions import ClientError
+import time
 
 # Create DynamoDB client
 dynamodb = boto3.client('dynamodb')
@@ -9,12 +10,17 @@ def lambda_handler(event, context):
     path = event['pathParameters']['proxy']
 
     try:
-        if path == 'conversations':
+        if path == 'conversations' and event['httpMethod'] == 'GET':
             conversation_data = fetch_conversations()
             return done(None, conversation_data)
         elif path.startswith('conversations/'):
             id = path[len('conversations/'):]
-            conversation_data = fetch_conversation_data(id)
+            if event['httpMethod'] == 'GET':
+                conversation_data = fetch_messages(id)
+            elif event['httpMethod'] == 'POST':
+                conversation_data = add_message(id, event['body'])
+            else:
+                return done('No cases hit')
             return done(None, conversation_data)
         else:
             return done('No cases hit')
@@ -77,12 +83,11 @@ def fetch_participants(conversation_ids):
         participants[id] = [item['Username']['S'] for item in response.get('Items', [])]
     return participants
 
-def fetch_conversation_data(id):
-    messages = fetch_messages(id)
-    conversation_detail = fetch_conversation_detail(id, messages)
+def fetch_conversation_detail(id, messages):
+    participants = fetch_participants([id])  # Fetch participants for this specific conversation
     return {
         'id': id,
-        'participants': conversation_detail['participants'],
+        'participants': participants.get(id, []),
         'last': messages[-1]['time'] if messages else None,
         'messages': messages
     }
@@ -102,24 +107,22 @@ def fetch_messages(id):
             'time': int(item['Timestamp']['N']),
             'message': item['Message']['S']
         })
-    return messages
+    return fetch_conversation_detail(id, messages)  # Fixed function name here
 
-def fetch_conversation_detail(id, messages):
-    participants = []
-    response = dynamodb.query(
-        TableName='Chat-Conversations',
-        Select='ALL_ATTRIBUTES',
-        KeyConditionExpression='ConversationId = :id',
-        ExpressionAttributeValues={':id': {'S': id}}
-    )
-    for item in response.get('Items', []):
-        participants.append(item['Username']['S'])
-    return {
-        'id': id,
-        'participants': participants,
-        'last': messages[-1]['time'] if messages else None,
-        'messages': messages
-    }
+def add_message(id, message_body):
+    try:
+        response = dynamodb.put_item(
+            TableName='Chat-Messages',
+            Item={
+                'ConversationId': {'S': id},
+                'Timestamp': {'N': str(int(time.time() * 1000))},
+                'Message': {'S': message_body},
+                'Sender': {'S': 'Student'}
+            }
+        )
+        return response
+    except ClientError as e:
+        return done(str(e))
 
 def done(err, res=None):
     if err:
