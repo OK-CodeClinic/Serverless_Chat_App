@@ -11,7 +11,7 @@ def lambda_handler(event, context):
         IndexName='Username-ConversationId-index',
         Select='ALL_PROJECTED_ATTRIBUTES',
         KeyConditionExpression='Username = :username',
-        ExpressionAttributeValues={':username': {'S': 'Student'}}
+        ExpressionAttributeValues={':username': {'S': event.cognitoUsername}}
     ):
         for item in page['Items']:
             conversation_ids.append(item['ConversationId']['S'])

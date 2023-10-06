@@ -16,7 +16,7 @@ def lambda_handler(event, context):
         'ConversationId': {'S': conversation_id},
         'Timestamp': {'N': timestamp},
         'Message': {'S': message},
-        'Sender': {'S': 'Student'}
+        'Sender': {'S': event.cognitoUsername}
     }
 
     # Insert the item into the DynamoDB table
