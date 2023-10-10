@@ -82,4 +82,31 @@ var ChatApp = window.ChatApp || {};
 
     };
 
+    ChatApp.populatePeople = function () {
+        apiClient.usersGet({}, null, {})
+            .then(function (result) {
+                result.data.forEach(function (name) {
+                    var button = $('<button class="btn btn-primary">Start Chat</button>');
+                    button.on('click', function() {
+                        ChatApp.startChat(name);
+                    });
+
+                    var row = $('<tr>');
+                    row.append('<td>' + name + '</td>');
+                    var cell = $('<td>');
+                    cell.append(button);
+                    row.append(cell);
+                    $('TBODY').append(row);
+                });
+                $('TBODY').append('<tr><td></td><td></td></tr>');
+            });
+    };
+
+    ChatApp.startChat = function (name) {
+        apiClient.conversationsPost({}, [name], {})
+            .then(function (result) {
+                window.location = '/chat.html#' + result.data;
+            });
+    };
+
 }(jQuery));
