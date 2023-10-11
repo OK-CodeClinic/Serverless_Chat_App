@@ -84,13 +84,13 @@ var ChatApp = window.ChatApp || {};
             apiClient.conversationsIdGet({id: location.hash.substring(1)}, null, {headers: {Authorization: token}})
                 .then(function (result) {
                     var lastRendered = lastChat === null ? 0 : lastChat;
-                    if((lastChat === null && result.data.last) || lastChat < result.data.last) {
+                    if ((lastChat === null && result.data.last) || lastChat < result.data.last) {
                         lastChat = result.data.last;
                     } else {
                         return;
                     }
                     result.data.messages.forEach(function (message) {
-                        if(message.time > lastRendered) {
+                        if (message.time > lastRendered) {
                             var panel = $('<div class="panel">');
                             if (message.sender === currentUsername) {
                                 panel.addClass('panel-default');
@@ -125,7 +125,7 @@ var ChatApp = window.ChatApp || {};
 
     ChatApp.send = function () {
         // We can assume the token will be set by now
-        ChatApp.useToken(function(token) {
+        ChatApp.useToken(function (token) {
             apiClient.conversationsIdPost({id: location.hash.substring(1)}, $('#message').val(), {headers: {Authorization: token}})
                 .then(function () {
                     $('#message').val('').focus();
@@ -140,7 +140,7 @@ var ChatApp = window.ChatApp || {};
                 .then(function (result) {
                     result.data.forEach(function (name) {
                         var button = $('<button class="btn btn-primary">Start Chat</button>');
-                        button.on('click', function() {
+                        button.on('click', function () {
                             ChatApp.startChat(name);
                         });
 
