@@ -13,4 +13,4 @@ This Lambda function is designed to retrieve chat messages from a specific conve
 This Lambda function is designed to receive a chat message along with the conversation ID, generate a timestamp, and insert a new message item into a DynamoDB table named 'Chat-Messages'. This allows for the storage of chat messages in the database.
 
 #### Chat-Users-GET.py
-This Lambda function fetches a list of usernames from a Cognito User Pool, excluding the provided 'cognitoUsername', and returns this list of usernames. It can be used, for example, to retrieve a list of other users in the same Cognito User Pool. This ensures when a user itself won't be availabale in its friend list of conversation.
+This Lambda function fetches a list of usernames from a Cognito User Pool, excluding the provided 'cognitoUsername', and returns this list of usernames. It can be used, for example, to retrieve a list of other users in the same Cognito User Pool. This ensures that a user itself won't be availabale in its friend list.
