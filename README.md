@@ -52,7 +52,7 @@ This blog provides an overview of a serverless chat application i developed usin
 
 ### PREREQUISTIES
 - AWS Account
--  Chat app files (html ,js and css files)
+- [Download frontend files](https://github.com/OK-CodeClinic/Serverless_Chat_App/tree/main)
 
 
 
@@ -82,6 +82,7 @@ This blog provides an overview of a serverless chat application i developed usin
 #### Step -3: Set Up Cognito for Manage Users
 - Create a Cognito User Pool
 - Customize the Hosted UI to best fit for you. Or choose the Cognito Hosted Public UI.
+- Configure App Client settings.
 
 
 ### Step-4:    Set Up API Gateway:
@@ -102,10 +103,13 @@ This blog provides an overview of a serverless chat application i developed usin
 }
 ```
 - Deploy API
-- Export the API as swagger
+- Export the API as swagger and test all your API if giving the right response.. Test it
+- Generate SDK
 
-### Step 5: Swagger File
-- Add exported APi into the ```/js``` of the s3 object
+- Set Up Authroizer, and make cognito the Authorizer of the API
+
+### Step 5: SDK
+- Unzip SDK folder and update APi into the ```/js``` object directory of the s3 bucket
 
 ### Step-6: CloudFront Distribution and WAF
 - Create an Origin Acccess Control as S3
@@ -115,6 +119,7 @@ This blog provides an overview of a serverless chat application i developed usin
 - Add domain SSL certiicate for Maximum security
 - Set Document Root to ```/index.html```
 - Enable WAF to add Extra layer of Security to the app
+- Update s3 Bucket Policy to allow Cloudfront to access web files.
 
 ### Step -7: Configure Custom domain
 - The domain used in cloudfront; in my case i use Godaddy. Open DNS management console
@@ -181,6 +186,8 @@ The following resources are monitored:
 #### AWS WAF 
 
 - Requests blocked
+- WebACL rule violations
+- Top rule match count
 
 ### CONCLUSION
 Chatify Serverless Chat App utilizes Amazon S3 for hosting, AWS Lambda functions for application logic, Amazon DynamoDB for data storage, and Amazon Cognito for user management. AWS CloudFront and WAF enhance security, making it a cost-efficient, high-performance chat solution with global reach.
