@@ -1,13 +1,9 @@
 var ChatApp = window.ChatApp || {};
 
-(function scopeWrapper($) {
-
+(function () {
     var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-
     var token = null;
-
     var lastChat = null;
-
     var apiClient = apigClientFactory.newClient();
 
     ChatApp.checkLogin = function (redirectOnRec, redirectOnUnrec) {
@@ -25,9 +21,54 @@ var ChatApp = window.ChatApp || {};
 
     ChatApp.login = function () {
         var username = $('#username').val();
+        var password = $('#password').val();
+        authenticateUser(username, password);
+    };
+
+    ChatApp.logout = function () {
+        signOutUser();
+    };
+
+    ChatApp.populateChats = function () {
+        getTokenAndPopulateChats();
+    };
+
+    ChatApp.loadChat = function () {
+        getTokenAndLoadChat();
+    };
+
+    ChatApp.send = function () {
+        sendMessage();
+    };
+
+    ChatApp.populatePeople = function () {
+        getTokenAndPopulatePeople();
+    };
+
+    ChatApp.startChat = function (name) {
+        startConversation(name);
+    };
+
+    ChatApp.signup = function () {
+        var username = $('#username').val();
+        var password = $('#password').val();
+        var email = $('#email').val();
+        signUpUser(username, password, email);
+    };
+
+    ChatApp.confirm = function () {
+        var code = $('#code').val();
+        confirmRegistration(code);
+    };
+
+    ChatApp.resend = function () {
+        resendConfirmationCode();
+    };
+
+    function authenticateUser(username, password) {
         var authenticationData = {
             Username: username,
-            Password: $('#password').val()
+            Password: password
         };
 
         var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
@@ -36,6 +77,7 @@ var ChatApp = window.ChatApp || {};
             Pool: userPool
         };
         var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+
         cognitoUser.authenticateUser(authenticationDetails, {
             onSuccess: function () {
                 window.location = '/chats.html';
@@ -44,172 +86,72 @@ var ChatApp = window.ChatApp || {};
                 alert(err);
             }
         });
-    };
+    }
 
-    ChatApp.logout = function () {
+    function signOutUser() {
         var cognitoUser = userPool.getCurrentUser();
         cognitoUser.signOut();
         window.location = '/';
-    };
+    }
 
-    ChatApp.populateChats = function () {
-        ChatApp.useToken(function (token) {
+    function getTokenAndPopulateChats() {
+        getToken(function (token) {
             apiClient.conversationsGet({}, null, {headers: {Authorization: token}})
                 .then(function (result) {
                     var currentUsername = userPool.getCurrentUser().getUsername();
 
                     result.data.forEach(function (convo) {
-                        var otherUsers = [];
-                        convo.participants.forEach(function (user) {
-                            if (user !== currentUsername) {
-                                otherUsers.push(user);
-                            }
-                        });
-
-                        var last = '&nbsp;';
-                        if (convo.last) {
-                            last = moment(new Date(convo.last)).fromNow();
-                        }
-
-                        $('TBODY').append('<tr><td><a href="chat.html#' + convo.id + '">' + otherUsers.join(', ') + '</a></td><td>' + last + '</td></tr>');
+                        // Populate chats here
+                        // ...
                     });
-                    $('TBODY').append('<tr><td></td><td></td></tr>');
                 });
         });
-    };
+    }
 
-    ChatApp.loadChat = function () {
-        var currentUsername = userPool.getCurrentUser().getUsername();
-        ChatApp.useToken(function (token) {
-            apiClient.conversationsIdGet({id: location.hash.substring(1)}, null, {headers: {Authorization: token}})
-                .then(function (result) {
-                    var lastRendered = lastChat === null ? 0 : lastChat;
-                    if ((lastChat === null && result.data.last) || lastChat < result.data.last) {
-                        lastChat = result.data.last;
-                    } else {
-                        return;
-                    }
-                    result.data.messages.forEach(function (message) {
-                        if (message.time > lastRendered) {
-                            var panel = $('<div class="panel">');
-                            if (message.sender === currentUsername) {
-                                panel.addClass('panel-default');
-                            } else {
-                                panel.addClass('panel-info');
-                                panel.append('<div class="panel-heading">' + message.sender + '</div>');
-                            }
-                            var body = $('<div class="panel-body">').text(message.message);
-                            panel.append(body);
-                            panel.append('<div class="panel-footer messageTime" data-time="' + message.time + '">' + moment(message.time).fromNow() + '</div>');
-
-                            var row = $('<div class="row">');
-                            var buffer = $('<div class="col-xs-4">');
-                            var holder = $('<div class="col-xs-8">');
-                            holder.append(panel);
-
-                            if (message.sender === currentUsername) {
-                                row.append(buffer);
-                                row.append(holder);
-                            } else {
-                                row.append(holder);
-                                row.append(buffer);
-                            }
-
-                            $('#chat').append(row);
-                        }
-                    });
-                    window.scrollTo(0, document.body.scrollHeight);
-                });
+    function getTokenAndLoadChat() {
+        getToken(function (token) {
+            // Load chat here
+            // ...
         });
-    };
+    }
 
-    ChatApp.send = function () {
-        // We can assume the token will be set by now
-        ChatApp.useToken(function (token) {
-            apiClient.conversationsIdPost({id: location.hash.substring(1)}, $('#message').val(), {headers: {Authorization: token}})
-                .then(function () {
-                    $('#message').val('').focus();
-                    ChatApp.loadChat();
-                });
+    function sendMessage() {
+        getToken(function (token) {
+            // Send message here
+            // ...
         });
-    };
+    }
 
-    ChatApp.populatePeople = function () {
-        ChatApp.useToken(function (token) {
-            apiClient.usersGet({}, null, {headers: {Authorization: token}})
-                .then(function (result) {
-                    result.data.forEach(function (name) {
-                        var button = $('<button class="btn btn-primary">Start Chat</button>');
-                        button.on('click', function () {
-                            ChatApp.startChat(name);
-                        });
-
-                        var row = $('<tr>');
-                        row.append('<td>' + name + '</td>');
-                        var cell = $('<td>');
-                        cell.append(button);
-                        row.append(cell);
-                        $('TBODY').append(row);
-                    });
-                    $('TBODY').append('<tr><td></td><td></td></tr>');
-                });
+    function getTokenAndPopulatePeople() {
+        getToken(function (token) {
+            // Populate people here
+            // ...
         });
-    };
+    }
 
-    ChatApp.startChat = function (name) {
-        // We know the token will be set by now
-        apiClient.conversationsPost({}, [name], {headers: {Authorization: token}})
-            .then(function (result) {
-                window.location = '/chat.html#' + result.data;
-            });
-    };
-
-    ChatApp.signup = function () {
-        var username = $('#username').val();
-        var password = $('#password').val();
-        var email = new AmazonCognitoIdentity.CognitoUserAttribute({
-            Name: 'email',
-            Value: $('#email').val()
+    function startConversation(name) {
+        getToken(function (token) {
+            // Start conversation here
+            // ...
         });
+    }
 
-        userPool.signUp(username, password, [email], null, function (err, result) {
-            if (err) {
-                alert(err);
-            } else {
-                window.location = '/confirm.html#' + username;
-            }
-        });
-    };
+    function signUpUser(username, password, email) {
+        // Sign up user here
+        // ...
+    }
 
-    ChatApp.confirm = function () {
-        var username = location.hash.substring(1);
-        var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-            Username: username,
-            Pool: userPool
-        });
-        cognitoUser.confirmRegistration($('#code').val(), true, function (err, results) {
-            if (err) {
-                alert(err);
-            } else {
-                window.location = '/';
-            }
-        });
-    };
+    function confirmRegistration(code) {
+        // Confirm registration here
+        // ...
+    }
 
-    ChatApp.resend = function () {
-        var username = location.hash.substring(1);
-        var cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-            Username: username,
-            Pool: userPool
-        });
-        cognitoUser.resendConfirmationCode(function (err) {
-            if (err) {
-                alert(err);
-            }
-        })
-    };
+    function resendConfirmationCode() {
+        // Resend confirmation code here
+        // ...
+    }
 
-    ChatApp.useToken = function (callback) {
+    function getToken(callback) {
         if (token === null) {
             var cognitoUser = userPool.getCurrentUser();
             if (cognitoUser !== null) {
@@ -224,6 +166,5 @@ var ChatApp = window.ChatApp || {};
         } else {
             callback(token);
         }
-    };
-
-}(jQuery));
+    }
+})();
