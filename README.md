@@ -27,6 +27,10 @@ This blog provides an overview of a serverless chat application i developed usin
 
 
 ### ARCHITECTURE
+  
+  ![serverless-chat-architecture](https://github.com/OK-CodeClinic/Serverless_Chat_App/assets/100064229/7386bfdf-dd01-4293-a285-05e0ae7dc818)
+
+
 
 
 
